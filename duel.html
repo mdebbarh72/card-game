@@ -96,7 +96,7 @@
                 <p id="opp-hand" class="text-slate-300 text-xs sm:text-sm font-semibold">Opponent: 3/6</p>
             </div>
 
-            
+           
             <div class="col-span-2 row-span-3 col-start-11 bg-gradient-to-b from-slate-800 to-slate-900 border-2 border-indigo-500/30 rounded-xl shadow-2xl p-2 sm:p-3">
                 <div class="flex flex-col items-center h-full justify-center gap-2 sm:gap-3">
                     <p id="your-lp" class="bg-slate-950 rounded-lg w-full text-emerald-400 p-2 text-center font-bold shadow-lg text-sm sm:text-base">8000 LP</p>
@@ -132,7 +132,7 @@
             
             <div class="col-span-8 row-span-1 col-start-3 row-start-3 bg-gradient-to-r from-slate-800 to-slate-900 border-2 border-emerald-500/30 rounded-xl shadow-2xl p-2 flex flex-col">
                 <p id="hand-count" class="text-xs sm:text-sm text-slate-300 mb-1 font-semibold">Hand (4/6)</p>
-                <div id="hand" class="flex-1 grid grid-cols-6 gap-1 sm:gap-2 place-items-center overflow-hidden"></div>
+                <div id="hand" class="flex-1 flex gap-1 sm:gap-2 justify-center items-center overflow-x-auto overflow-y-hidden"></div>
             </div>
         </div>
     </div>
@@ -285,7 +285,7 @@
             modalOverlay.classList.remove('modal-show');
         }
 
-        // Surrender Button
+        
         surrenderBtn.addEventListener('click', () => {
             showModal('gameOver', {
                 result: 'lose',
@@ -322,6 +322,10 @@
         }
 
         turnBtn.addEventListener("click", ()=>{
+            if (!drew) {
+                showToast("You must draw a card first!", "warning");
+                return;
+            }
             endTurn();
         })
 
@@ -384,10 +388,19 @@
         }
 
         function addDragListeners(card) {
-            if(!summoned)
-                card.addEventListener("dragstart", (e) => {
-                    card.classList.add("dragging");
-                });
+            card.addEventListener("dragstart", (e) => {
+                if (!drew) {
+                    e.preventDefault();
+                    showToast("Draw a card first!", "warning");
+                    return;
+                }
+                if (summoned) {
+                    e.preventDefault();
+                    showToast("Already summoned this turn!", "warning");
+                    return;
+                }
+                card.classList.add("dragging");
+            });
 
             card.addEventListener("dragend", (e) => {
                 card.classList.remove("dragging");
@@ -498,6 +511,7 @@
                     const card= renderCard(card_details)
                     hand.append(card);
                     updateHandCount();
+                    updateTurn();
                 }
             })
 
@@ -582,7 +596,7 @@
             colorLayer.append(detailsContainer);
 
             const gridItem= document.createElement('div');
-            gridItem.className = "card w-full h-full max-h-full flex flex-col transition-transform duration-200 card-hover cursor-grab active:cursor-grabbing";
+            gridItem.className = "card flex-shrink-0 h-full w-auto max-w-[120px] aspect-[5/7] flex flex-col transition-transform duration-200 card-hover cursor-grab active:cursor-grabbing";
             gridItem.append(colorLayer)
             gridItem.draggable = true;
 
